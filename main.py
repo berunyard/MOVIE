@@ -62,14 +62,40 @@ plt.show()
 
 #distribuição dos gêneros de filmes
 #convertendo os gêneros de uma lista para uma string e dividindo as palavras
-df['genres'] = df['genres'].apply(lambda x: x.split('|') if isinstance(x, str) else [])
-all_genres = [genre for sublist in df['genres'] for genre in sublist]
+#df['genres'] = df['genres'].apply(lambda x: x.split('|') if isinstance(x, str) else [])
+#all_genres = [genre for sublist in df['genres'] for genre in sublist]
 
-plt.figure(figsize=(12,6))
-sns.countplot(y=all_genres, order=pd.Series(all_genres).value_counts().index, palette='Set2')
-plt.title('Distribuição dos Gêneros de Filmes')
-plt.xlabel('Frequência')
-plt.ylabel('Gênero')
+#plt.figure(figsize=(12,6))
+#sns.countplot(y=all_genres, order=pd.Series(all_genres).value_counts().index, palette='Set2')
+#plt.title('Distribuição dos Gêneros de Filmes')
+#plt.xlabel('Frequência')
+#plt.ylabel('Gênero')
+#plt.show()
+# ^ datado, visualização díficil por não ter limite de gêneros
+
+# nova distribuição dos gêneros de filmes
+# remover valores nulos na coluno de gênero
+df = df.dropna(subset=['genres'])
+# coluna de gêneros (json) -> lista de gêneros
+import ast
+df['genres'] = df['genres'].apply(lambda x: [genre['name'] for genre in ast.literal_eval(x)])
+# contagem de cada gênero pelo dataframe
+from collections import Counter
+genre_counts = Counter([genre for sublist in df['genres'] for genre in sublist])
+# converter para um dataframe, ordernação
+genre_df = pd.DataFrame(genre_counts.items(), columns=['Genre', 'Count'])
+genre_df = genre_df.sort_values(by='Count', ascending=False)
+# LIMITAR O NÚMERO DE GÊNEROS a 10
+top_n = 10
+genre_df = genre_df.head(top_n)
+
+plt.figure(figsize=(12, 6))
+sns.barplot(x=genre_df['Genre'], y=genre_df['Count'], palette='viridis')
+
+plt.title('Distribuição dos Gêneros de Filmes (Top 10)')
+plt.xlabel('Gênero')
+plt.ylabel('Número de Filmes')
+plt.xticks(rotation=45) #rotacionei o nome dos filmes
 plt.show()
 
 #relação entre orçamento e bilheteria
